@@ -181,7 +181,9 @@ def train_chain(series_dict, trans, n):
     """ convenience to create a chain from a dictionary of pd.Series objects """
     chain = NormalChain(n, priors=(0, 0.01), data_sigma = 0.01)
     chain.transform = trans
-    for s in series_dict.values():
+    for i, s in enumerate(series_dict.values()):
+        if i > len(series_dict) - 2:
+            break
         chain.update(s)
     return chain
 
@@ -193,10 +195,10 @@ if __name__ == "__main__":
     p = Predictor(good=good_chain, bad=bad_chain)
     print("good series")
     for i in range(4):
-        print(p.predict(good_series[tek_name(i)]))
+        print(p.predict(good_series[tek_name(i)]), end=" ")
     print()
-    print("bad series")
+    print("bad series: ", end=" ")
     for i in range(10, 18):
-        print(p.predict(bad_series[tek_name(i)]))
-
-    plot_all_series(bad_series)
+        print(p.predict(bad_series[tek_name(i)]), end=" ")
+    print()
+    # plot_all_series(bad_series)
