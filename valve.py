@@ -56,7 +56,7 @@ def plot_all_series(series_dict):
     """ plots a sqrt(n) x sqrt(n) subplot where n = len(series_dict) """
     dim = int(np.ceil(np.sqrt(len(series_dict))))
     subplt = plt.subplots(dim, dim)
-    for ax, (name, s) in zip(subplt[1].reshape((len(series_dict), )), series_dict.items()):
+    for ax, (name, s) in zip(subplt[1].reshape((dim*dim, )), series_dict.items()):
         s.plot(ax=ax, title = name)
     plt.show()
 
@@ -125,7 +125,7 @@ class NormalChain(object):
         
     @property
     def transform(self):
-        return self.transform
+        return self._transform
 
     @transform.setter
     def transform(self, new_transform):
@@ -144,7 +144,7 @@ class NormalChain(object):
         
     def log_likelihood(self, new_data):
         """ given new_data, what is the probability that it fits here? """
-        diffs = np.diff(new_data)
+        diffs = np.diff(self.transform(new_data))
         return sum(filter(lambda x: x > 1e-30, [np.log(node.prob(v)) for node, v in zip(self.nodes, diffs)]))
 
     def plot_path(self, num_samples=1000):
@@ -183,3 +183,20 @@ def train_chain(series_dict, trans, n):
     chain.transform = trans
     for s in series_dict.values():
         chain.update(s)
+    return chain
+
+
+if __name__ == "__main__":
+    good_chain = train_chain(good_series, overlap_mean, 989)
+    bad_chain = train_chain(bad_series, overlap_mean, 989)
+
+    p = Predictor(good=good_chain, bad=bad_chain)
+    print("good series")
+    for i in range(4):
+        print(p.predict(good_series[tek_name(i)]))
+    print()
+    print("bad series")
+    for i in range(10, 18):
+        print(p.predict(bad_series[tek_name(i)]))
+
+    plot_all_series(bad_series)
